@@ -72,34 +72,17 @@ app.post("/Usuario", function(request, response){
 });
 
 app.post("/Usuario/login", function(request, response){
-    let credenciais = {
-        email: request.body.email,
-        celular: request.body.celular,
-        senha: request.body.senha
-    };
-    let userCorrect = "";
-    let userInvalid = true;
-    // let Usuario = [];
-
-    if(credenciais.email !== null && credenciais.email !== undefined){
-        userCorrect = "email";
-    }
-    
-    else if(credenciais.celular !== null && credenciais.celular !== undefined){
-        userCorrect = "celular";
-    }
-
-    else{
-        response.json({
-            response: false,
-            msg: "Não foi enviado email ou celular"
-        });
-        return;
-    }
-
     db.get()
     .then(function(docs){
+        let credenciais = {
+            email: request.body.email,
+            celular: request.body.celular,
+            senha: request.body.senha
+        };
+        let userCorrect = "";
+        let userInvalid = true;
         let Usuarios = [];
+
         docs.forEach(function(doc){
             Usuarios.push({
                 id: doc.id, 
@@ -108,27 +91,46 @@ app.post("/Usuario/login", function(request, response){
                 login: doc.data().login
             });
         })
-        response.json(Usuarios);
-    })
 
+        if(credenciais.email !== null && credenciais.email !== undefined){
+            userCorrect = "email";
+        }
+        
+        else if(credenciais.celular !== null && credenciais.celular !== undefined){
+            userCorrect = "celular";
+        }
     
-    
-    /*
-    Usuarios.forEach( function(Usuario) {
+        else{
+            response.status(404).json({
+                response: false,
+                msg: "Não foi enviado email ou celular " + credenciais.senha
+            });
+            return;
+        }
+
+        /*response.status(404).json({
+            response: true,
+            msg: userCorrect + " peguei " + credenciais[userCorrect]
+        });
+        return;*/
+
+        Usuarios.forEach( function(Usuario) {
             if(Usuario.login[userCorrect] === credenciais[userCorrect]){
                 userInvalid = false;
 
                 if(Usuario.login.senha === credenciais.senha){
-                    response.status(200).jsonpjson({
+                    response.status(200).json({
                         response: true,
                         msg: "Usuario encontrado"
                     });
+                    return;
                 }
-                else   
+                else{  
                     response.status(404).json({
                         response: false,
-                        msg: "Senha Invalida"
+                        msg: "Senha Invalida " + credenciais[userCorrect] +" "+ Usuario.login.senha +" "+ credenciais.senha
                     });
+                }
             }
 
         });
@@ -137,7 +139,9 @@ app.post("/Usuario/login", function(request, response){
             response.status(404).json({
                 response: false,
                 msg: "Usuario Invalido"
-            });*/
+            });
+
+    })
 });
 
 
