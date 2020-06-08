@@ -31,7 +31,7 @@ app.get("/Usuario", function(request, response){
 });
 
 /**Usuario: criar novo Usuario
- * @param <JSON> request.body - exemplo:
+ * @param request.body - json exemplo:
  *  {
         "alarmes": {
             "hora": "03:55",
@@ -71,6 +71,12 @@ app.post("/Usuario", function(request, response){
     })
 });
 
+/** Usuario/login: verifica se o usuario e senha já são cadastrados
+ * @param request.body - json exemplo: {email: "", celular: "", senha: ""}
+ * @return <boolean> response
+ * @return <String> msg - Informações
+ */
+
 app.post("/Usuario/login", function(request, response){
     db.get()
     .then(function(docs){
@@ -108,12 +114,6 @@ app.post("/Usuario/login", function(request, response){
             return;
         }
 
-        /*response.status(404).json({
-            response: true,
-            msg: userCorrect + " peguei " + credenciais[userCorrect]
-        });
-        return;*/
-
         Usuarios.forEach( function(Usuario) {
             if(Usuario.login[userCorrect] === credenciais[userCorrect]){
                 userInvalid = false;
@@ -140,7 +140,6 @@ app.post("/Usuario/login", function(request, response){
                 response: false,
                 msg: "Usuario Invalido"
             });
-
     })
 });
 
