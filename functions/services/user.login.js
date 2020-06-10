@@ -47,7 +47,7 @@ module.exports = {
                     if(Usuario.login.senha === credenciais.senha){
                         response.status(200).json({
                             response: true,
-                            msg: "Usuario encontrado"
+                            msg: Usuario.id
                         });
                         return;
                     }
