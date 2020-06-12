@@ -12,7 +12,8 @@ const userAlarme = require('./services/user.Alarme');
  * @return <Array> Usuarios - lista com todos os usuarios cadastrados
  */ 
 
-app.get("/Usuario", userUsuarios.getUsuarios);
+app.post("/Usuario/cadastrado", userUsuarios.getUsuarios);
+app.get("/Usuario/todos", userUsuarios.todosUsuarios);
 
 /**Usuario: criar novo Usuario
  * @param request.body - json exemplo:

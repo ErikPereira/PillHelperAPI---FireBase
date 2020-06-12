@@ -3,10 +3,7 @@ const admin = require('firebase-admin');
 module.exports = {
 
     novoAlarme: function(request, response){
-        const novoAlarme = {
-            nomeRemedio: request.body.nomeRemedio,
-            hora: request.body.hora,
-        };
+        const novoAlarme = request.body.novoAlarme;
         const id = request.body.id;
         const dbAlarme = admin.firestore().collection("Usuario").doc(id);
         let data = {};
@@ -37,14 +34,8 @@ module.exports = {
     },
 
     atualizaAlarme: function(request, response){
-        const velhoAlarme = {
-            nomeRemedio: request.body.velhoAlarme.nomeRemedio,
-            hora: request.body.velhoAlarme.hora, 
-        }
-        const novoAlarme = {
-            nomeRemedio: request.body.novoAlarme.nomeRemedio,
-            hora: request.body.novoAlarme.hora, 
-        };
+        const velhoAlarme =  request.body.velhoAlarme;
+        const novoAlarme = request.body.novoAlarme;
         const id = request.body.id;
         const dbAlarme = admin.firestore().collection("Usuario").doc(id);
         let data = {};
@@ -58,9 +49,10 @@ module.exports = {
                 login: doc.data().login
             }
             data.alarmes.forEach((alarme) => {
-                if(alarme.nomeRemedio === velhoAlarme.nomeRemedio && alarme.hora === velhoAlarme.hora){
-                    alarme.nomeRemedio = novoAlarme.nomeRemedio;
-                    alarme.hora = novoAlarme.hora;
+                if(alarme.nome_remedio === velhoAlarme.nome_remedio && alarme.hora === velhoAlarme.hora && alarme.minuto === velhoAlarme.minuto){
+                   for(var descricao in alarme){
+                       alarme[descricao] = novoAlarme[descricao];
+                   }
                     modificou = true
                 }
             });
