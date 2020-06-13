@@ -57,14 +57,14 @@ module.exports = {
             })
 
             Usuarios.forEach(function(usuario){
-                if(usuario.login.email === newUsuario.login.email){
+                if(usuario.login.email === newUsuario.login.email && usuario.login.email !== "" && usuario.login.email !== " " && usuario.login.email !== null && usuario.login.email !== undefined){
                     response.status(404).json({
                         response: false,
                         msg: "Email já cadastrado"
                     });
                     return;
                 }
-                if(usuario.login.celular === newUsuario.login.celular){
+                if(usuario.login.celular === newUsuario.login.celular && usuario.login.celular !== "" && usuario.login.celular !== " " && usuario.login.celular !== null && usuario.login.celular !== undefined){
                     response.status(404).json({
                         response: false,
                         msg: "Celular já cadastrado"

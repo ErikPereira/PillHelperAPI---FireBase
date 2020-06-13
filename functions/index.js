@@ -54,6 +54,8 @@ app.post("/Usuario/alarme", userAlarme.novoAlarme);
 
 app.post("/Usuario/alarme/atualizar", userAlarme.atualizaAlarme);
 
+app.post("/Usuario/alarme/excluir", userAlarme.excluirAlarme);
+
 app.post("/Usuario/caixa", userCaixa.novaCaixa);
 
 app.post("/Usuario/caixa/atualizar", userCaixa.atualizaCaixa);
