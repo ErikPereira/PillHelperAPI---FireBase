@@ -2,6 +2,7 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 const functions = require('firebase-functions');
 const app = require('express')();
+
 const userUsuarios = require('./services/user.Usuario');
 const userLogin = require('./services/user.Login');
 const userCaixa = require('./services/user.Caixa');
@@ -13,6 +14,7 @@ const userAlarme = require('./services/user.Alarme');
  */ 
 
 app.post("/Usuario/cadastrado", userUsuarios.getUsuarios);
+
 app.get("/Usuario/todos", userUsuarios.todosUsuarios);
 
 /**Usuario: criar novo Usuario
