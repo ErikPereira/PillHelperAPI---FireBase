@@ -15,6 +15,10 @@ const userAlarme = require('./services/user.Alarme');
 
 app.post("/Usuario/cadastrado", userUsuarios.getUsuarios);
 
+/**Usuario/todos
+ * @return <Array> Usuarios - lista com todos os usuarios cadastrados
+ */ 
+
 app.get("/Usuario/todos", userUsuarios.todosUsuarios);
 
 /**Usuario: criar novo Usuario
@@ -61,6 +65,8 @@ app.post("/Usuario/alarme/excluir", userAlarme.excluirAlarme);
 app.post("/Usuario/caixa", userCaixa.novaCaixa);
 
 app.post("/Usuario/caixa/atualizar", userCaixa.atualizaCaixa);
+
+app.get("/Caixa/todos", userCaixa.todasCaixas);
 
 exports.api = functions.https.onRequest(app); 
 

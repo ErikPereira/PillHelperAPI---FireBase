@@ -1,39 +1,103 @@
 const admin = require('firebase-admin');
 
 module.exports = {
-
-    novaCaixa: function(request, response){
-        const novaCaixa = {
-            nomeCaixa: request.body.nomeCaixa,
-            id: request.body.idCaixa
-        };
-        const id = request.body.idUsuario;
-        const dbCaixa = admin.firestore().collection("Usuario").doc(id);
-        let data = {};
+    todasCaixas: function(request, response){
+        const dbCaixa = admin.firestore().collection("Caixa");
 
         dbCaixa.get()
-        .then(function(doc){
-            data = {
-                alarmes: doc.data().alarmes,
-                caixas: doc.data().caixas,
-                login: doc.data().login
-            }
+        .then(function(docs){
+            let Caixas = [];
 
-            data.caixas.push(novaCaixa);
-            dbCaixa.update(data)
-            .then(function(){
-                response.status(200).json({
-                    response: true,
-                    msg: "Caixa Adicionada com sucesso!",
+            docs.forEach(function(doc){
+                encontrou = true;
+                Caixas.push({
+                    emailUsuario: doc.data().emailUsuario,
+                    celularUsuario: doc.data().celularUsuario,
+                    nome: doc.data().nome,
+                    id: doc.id
                 });
             })
-            .catch(function(err){
-                response.status(304).json({
-                    response: false,
-                    msg: "Caixa não adicionado!" + err,
-                });
-            })  
+            response.status(200).json(Caixas); 
         })
+    },
+
+    novaCaixa: async function(request, response){
+        const idCaixa =  request.body.idCaixa;
+        const idUsuario = request.body.idUsuario;
+        const dbUsuario = admin.firestore().collection("Usuario").doc(idUsuario);
+        const dbCaixa = admin.firestore().collection("Caixa").doc(idCaixa);
+        const mudarUsuario = request.body.mudarUsuario;
+        let caixaCadastrada = {};
+
+        await dbCaixa.get()
+            .then(function(doc){
+                caixaCadastrada = {
+                    idUsuario: doc.data().idUsuario,
+                    nome: doc.data().nome,
+                }; 
+            })
+            .catch(function(err){
+                response.status(404).json({
+                    response: false,
+                    msg: "caixa "+ idCaixa +" Não encontrada"
+                });
+            })
+            
+        if(caixaCadastrada.idUsuario !== "null" && !mudarUsuario){
+            response.status(404).json({
+                response: false,
+                msg: "caixa "+ idCaixa + " já foi cadastrada"
+            });
+            return;
+        }
+
+        let usuarioCadastrado = {};
+        
+        await dbUsuario.get()
+            .then(function(doc){
+                usuarioCadastrado = {
+                    alarmes: doc.data().alarmes,
+                    caixas: doc.data().caixas,
+                    login: doc.data().login
+                }
+            })
+            .catch(function(err){
+                response.status(404).json({
+                    response: false,
+                    msg: "Usuario "+ idUsuario +" Não encontrada: "
+                });
+            })
+        
+        usuarioCadastrado.caixas.push({
+            id: idCaixa,
+            nome: request.body.nomeCaixa
+        });
+
+        caixaCadastrada = {
+            idUsuario: idUsuario,
+            nome: request.body.nomeCaixa
+        }
+
+        await dbCaixa.update(caixaCadastrada)
+            .catch(function(err){
+                response.status(404).json({
+                    response: false,
+                    msg: "erro ao salvar informacoes da Caixa!" + err,
+                });
+            })
+
+        await dbUsuario.update(usuarioCadastrado)
+            .catch(function(err){
+                response.status(404).json({
+                    response: false,
+                    msg: "erro ao salvar informacoes do Usuario!" + err,
+                });
+            }) 
+        
+        response.status(200).json({
+            response: true,
+            msg: "Caixa adicionada com sucesso!",
+        });
     },
 
     atualizaCaixa: function(request, response){
@@ -79,7 +143,7 @@ module.exports = {
                 });
             })
             .catch(function(err){
-                response.status(304).json({
+                response.status(404).json({
                     response: false,
                     msg: "Caixa não modificada!" + err,
                 });
