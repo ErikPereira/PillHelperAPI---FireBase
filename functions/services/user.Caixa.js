@@ -11,8 +11,7 @@ module.exports = {
             docs.forEach(function(doc){
                 encontrou = true;
                 Caixas.push({
-                    emailUsuario: doc.data().emailUsuario,
-                    celularUsuario: doc.data().celularUsuario,
+                    idUsuario: doc.data().idUsuario,
                     nome: doc.data().nome,
                     id: doc.id
                 });
@@ -54,24 +53,35 @@ module.exports = {
         let usuarioCadastrado = {};
         
         await dbUsuario.get()
-            .then(function(doc){
-                usuarioCadastrado = {
-                    alarmes: doc.data().alarmes,
-                    caixas: doc.data().caixas,
-                    login: doc.data().login
-                }
-            })
-            .catch(function(err){
-                response.status(404).json({
-                    response: false,
-                    msg: "Usuario "+ idUsuario +" Não encontrada: "
-                });
-            })
+        .then(function(doc){
+            usuarioCadastrado = {
+                alarmes: doc.data().alarmes,
+                caixas: doc.data().caixas,
+                login: doc.data().login
+            }
+        })
+        .catch(function(err){
+            response.status(404).json({
+                response: false,
+                msg: "Usuario "+ idUsuario +" Não encontrada: "
+            });
+        })
         
-        usuarioCadastrado.caixas.push({
-            id: idCaixa,
-            nome: request.body.nomeCaixa
-        });
+        
+        let jaExiste = false;
+
+        for(let caixa in usuarioCadastrado.caixas){
+            if(caixa.id === idCaixa){
+                jaExiste = true;
+                caixa.nome =  request.body.nomeCaixa
+            }
+        }
+        if(!jaExiste){
+            usuarioCadastrado.caixas.push({
+                id: idCaixa,
+                nome: request.body.nomeCaixa
+            });  
+        }
 
         caixaCadastrada = {
             idUsuario: idUsuario,
@@ -79,21 +89,20 @@ module.exports = {
         }
 
         await dbCaixa.update(caixaCadastrada)
-            .catch(function(err){
-                response.status(404).json({
-                    response: false,
-                    msg: "erro ao salvar informacoes da Caixa!" + err,
-                });
-            })
+        .catch(function(err){
+            response.status(404).json({
+                response: false,
+                msg: "erro ao salvar informacoes da Caixa!" + err,
+            });
+        }) 
 
         await dbUsuario.update(usuarioCadastrado)
-            .catch(function(err){
-                response.status(404).json({
-                    response: false,
-                    msg: "erro ao salvar informacoes do Usuario!" + err,
-                });
-            }) 
-        
+        .catch(function(err){
+            response.status(404).json({
+                response: false,
+                msg: "erro ao salvar informacoes do Usuario!" + err,
+            });
+        })
         response.status(200).json({
             response: true,
             msg: "Caixa adicionada com sucesso!",
