@@ -68,5 +68,7 @@ app.post("/Usuario/caixa/atualizar", userCaixa.atualizaCaixa);
 
 app.get("/Caixa/todos", userCaixa.todasCaixas);
 
+app.post("/Caixa/getAlarmes", userCaixa.getAlarmes);
+
 exports.api = functions.https.onRequest(app); 
 

@@ -158,5 +158,52 @@ module.exports = {
                 });
             })  
         })
+    },
+
+    getAlarmes: async function(request, response){
+        const idCaixa =  request.body.idCaixa;
+        const dbUsuario = admin.firestore().collection("Usuario");
+        let Alarmes = [];
+        let retorno = [];
+
+        await dbUsuario.get()
+        .then(function(docs){
+            let usuario = {};
+            docs.forEach(function(doc){
+                usuario = {
+                    id: doc.id, 
+                    alarmes: doc.data().alarmes,
+                    caixas: doc.data().caixas,
+                    login: doc.data().login
+                };
+
+                for(let i in usuario.caixas){
+                    if(usuario.caixas[i].id === idCaixa){
+                        Alarmes = Object.assign({}, usuario.alarmes);   
+                       break;
+                    }
+                }
+            })
+        }) 
+
+        for(var i in Alarmes){
+            retorno.push({
+                hora: Alarmes[i].hora,
+                minuto: Alarmes[i].minuto,
+                posCaixa: Alarmes[i].posCaixa,
+                dias: 
+                [
+                    Alarmes[i].domingo, Alarmes[i].segunda, Alarmes[i].terca, Alarmes[i].quarta, Alarmes[i].quinta, Alarmes[i].sexta, Alarmes[i].sabado
+                ],
+                sonoro: Alarmes[i].sonoro,
+                luminoso: Alarmes[i].luminoso
+            });
+        }
+
+        response.status(200).json({
+            response: true,
+            msg: retorno
+        });  
+
     }
 };
