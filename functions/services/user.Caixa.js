@@ -1,5 +1,97 @@
 const admin = require('firebase-admin');
 
+
+async function deletCaixa(request, response){
+    const idCaixa =  request.body.idCaixa;
+        const idUsuario = request.body.id;
+        const dbUsuario = admin.firestore().collection("Usuario").doc(idUsuario);
+        const dbCaixa = admin.firestore().collection("Caixa").doc(idCaixa);
+        let caixaCadastrada = {};
+        let usuarioCadastrado = {};
+
+        await dbCaixa.get()
+            .then(function(doc){
+                caixaCadastrada = {
+                    idUsuario: doc.data().idUsuario,
+                    nomeCaixa: doc.data().nomeCaixa,
+                }; 
+            })
+            .catch(function(err){
+                response.status(404).json({
+                    response: false,
+                    msg: "caixa "+ idCaixa +" Não encontrada"
+                });
+                return response;
+            })
+
+        await dbUsuario.get()
+        .then(function(doc){
+            usuarioCadastrado = {
+                alarmes: doc.data().alarmes,
+                caixas: doc.data().caixas,
+                login: doc.data().login
+            }
+        })
+        .catch(function(err){
+            response.status(404).json({
+                response: false,
+                msg: "Usuario "+ idUsuario +" Não encontrada: "
+            });
+            return response;
+        })
+        
+        
+        let novasCaixas = [];
+        let encontrouCaixa = false;
+
+        for(const i in usuarioCadastrado.caixas){
+            const caixa = usuarioCadastrado.caixas[i];
+            if(caixa.idCaixa !== idCaixa){
+                novasCaixas.push(caixa)
+            }
+            else encontrouCaixa = true;
+        }
+
+        if(!encontrouCaixa){
+            response.status(404).json({
+                response: false,
+                msg: "Caixa " + idCaixa + " não esta cadastrado no usuario de ID " + idUsuario,
+            });
+            return response;
+        }
+        usuarioCadastrado ={
+            alarmes: usuarioCadastrado.alarmes,
+            caixas: novasCaixas,
+            login: usuarioCadastrado.login,
+        };
+
+        caixaCadastrada.idUsuario = "";
+
+        await dbCaixa.update(caixaCadastrada)
+        .catch(function(err){
+            response.status(404).json({
+                response: false,
+                msg: "erro ao salvar informacoes da Caixa!" + err,
+            });
+            return response;
+        }) 
+
+        await dbUsuario.update(usuarioCadastrado)
+        .catch(function(err){
+            response.status(404).json({
+                response: false,
+                msg: "erro ao salvar informacoes do Usuario!" + err,
+            });
+            return response;
+        })
+        response.status(200).json({
+            response: true,
+            msg: "Caixa removida com sucesso!",
+        });
+
+        return response;
+}
+
 module.exports = {
     todasCaixas: function(request, response){
         const dbCaixa = admin.firestore().collection("Caixa");
@@ -12,7 +104,7 @@ module.exports = {
                 encontrou = true;
                 Caixas.push({
                     idUsuario: doc.data().idUsuario,
-                    nome: doc.data().nome,
+                    nomeCaixa: doc.data().nome,
                     id: doc.id
                 });
             })
@@ -22,7 +114,7 @@ module.exports = {
 
     novaCaixa: async function(request, response){
         const idCaixa =  request.body.idCaixa;
-        const idUsuario = request.body.idUsuario;
+        const idUsuario = request.body.id;
         const dbUsuario = admin.firestore().collection("Usuario").doc(idUsuario);
         const dbCaixa = admin.firestore().collection("Caixa").doc(idCaixa);
         const mudarUsuario = request.body.mudarUsuario;
@@ -32,7 +124,7 @@ module.exports = {
             .then(function(doc){
                 caixaCadastrada = {
                     idUsuario: doc.data().idUsuario,
-                    nome: doc.data().nome,
+                    nomeCaixa: doc.data().nomeCaixa,
                 }; 
             })
             .catch(function(err){
@@ -42,12 +134,22 @@ module.exports = {
                 });
             })
             
-        if(caixaCadastrada.idUsuario !== "null" && !mudarUsuario){
+        if(caixaCadastrada.idUsuario !== "" && mudarUsuario === "false"){
             response.status(404).json({
                 response: false,
                 msg: "caixa "+ idCaixa + " já foi cadastrada"
             });
             return;
+        }
+
+        if(caixaCadastrada.idUsuario !== "" && mudarUsuario === "true" && caixaCadastrada.idUsuario !== idUsuario){
+            const corpo = {
+                body:{
+                    id: caixaCadastrada.idUsuario,
+                    idCaixa
+                }    
+            };
+            await deletCaixa(corpo, response);
         }
 
         let usuarioCadastrado = {};
@@ -69,23 +171,32 @@ module.exports = {
         
         
         let jaExiste = false;
+        const novasCaixas = [];
 
-        for(let caixa in usuarioCadastrado.caixas){
-            if(caixa.id === idCaixa){
+        for(const i in usuarioCadastrado.caixas){
+            const caixa = usuarioCadastrado.caixas[i];
+            if(caixa.idCaixa === idCaixa){
                 jaExiste = true;
-                caixa.nome =  request.body.nomeCaixa
+                caixa.nomeCaixa =  request.body.nomeCaixa;
             }
+            novasCaixas.push(caixa);
         }
         if(!jaExiste){
-            usuarioCadastrado.caixas.push({
-                id: idCaixa,
-                nome: request.body.nomeCaixa
+            novasCaixas.push({
+                idCaixa,
+                nomeCaixa: request.body.nomeCaixa
             });  
         }
 
+        usuarioCadastrado ={
+            alarmes: usuarioCadastrado.alarmes,
+            caixas: novasCaixas,
+            login: usuarioCadastrado.login,
+        };
+
         caixaCadastrada = {
             idUsuario: idUsuario,
-            nome: request.body.nomeCaixa
+            nomeCaixa: request.body.nomeCaixa
         }
 
         await dbCaixa.update(caixaCadastrada)
@@ -109,7 +220,7 @@ module.exports = {
         });
     },
 
-    atualizaCaixa: function(request, response){
+    atualizaCaixa: async function(request, response){
         const velhaCaixa = {
             nomeCaixa: request.body.velhaCaixa.nomeCaixa,
             id: request.body.velhaCaixa.id,
@@ -131,7 +242,7 @@ module.exports = {
                 login: doc.data().login
             }
             data.caixas.forEach((caixa) => {
-                if(caixa.id === velhaCaixa.id){
+                if(caixa.idCaixa=== velhaCaixa.id){
                     caixa.id = novaCaixa.id;
                     caixa.nomeCaixa = novaCaixa.nomeCaixa;
                     modificou = true
@@ -163,8 +274,11 @@ module.exports = {
     getAlarmes: async function(request, response){
         const idCaixa =  request.body.idCaixa;
         const dbUsuario = admin.firestore().collection("Usuario");
+        const diasSemana = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
         let Alarmes = [];
-        let retorno = [];
+        let retorno = {
+            alarmes: [],
+        };
 
         await dbUsuario.get()
         .then(function(docs){
@@ -177,27 +291,44 @@ module.exports = {
                     login: doc.data().login
                 };
 
-                for(let i in usuario.caixas){
-                    if(usuario.caixas[i].id === idCaixa){
+                for(const i in usuario.caixas){
+                    const caixa = usuario.caixas[i];
+                    if(caixa.idCaixa === idCaixa){
                         Alarmes = Object.assign({}, usuario.alarmes);   
                        break;
                     }
                 }
             })
         }) 
+        for(const i in Alarmes){
+            const alarme = Alarmes[i];
+            if(alarme.alarm_type === "1"){ // fixo
+                for(var j = 0; j < 7; j++){
+                    if(alarme[diasSemana[j]] === "1"){
+                        const hora = parseInt(alarme.hora)  < 10 ? `0${alarme.hora}`   : alarme.hora;
+                        const min = parseInt(alarme.minuto) < 10 ? `0${alarme.minuto}` : alarme.minuto;
+                        const posCaixa = parseInt(alarme.posCaixa) < 10 ? `0${alarme.posCaixa}` : alarme.posCaixa;
+                        retorno.alarmes.push(`WH${j} ${hora}:${min} L${posCaixa} S${alarme.sonoro}`);
+                    }
+                }
+            }
+            else{ // intervalado
+                const vezes_dia = alarme.vezes_dia;
+                let hora, min;
 
-        for(var i in Alarmes){
-            retorno.push({
-                hora: Alarmes[i].hora,
-                minuto: Alarmes[i].minuto,
-                posCaixa: Alarmes[i].posCaixa,
-                dias: 
-                [
-                    Alarmes[i].domingo, Alarmes[i].segunda, Alarmes[i].terca, Alarmes[i].quarta, Alarmes[i].quinta, Alarmes[i].sexta, Alarmes[i].sabado
-                ],
-                sonoro: Alarmes[i].sonoro,
-                luminoso: Alarmes[i].luminoso
-            });
+                for(var j = 0; j < vezes_dia; j++){
+                    hora = ( parseInt(alarme.hora) + (j *parseInt(alarme.periodo_hora)) ) % 24; 
+                    min = parseInt(alarme.minuto) + (j * parseInt(alarme.periodo_min));
+                    if(min >= 60){
+                        hora = (hora + 1) % 24;
+                        min %= 60;
+                    }
+                    hora = hora < 10 ? `0${hora}` : hora;
+                    min = min < 10 ? `0${min}` : min;
+                    const posCaixa = parseInt(alarme.posCaixa) < 10 ? `0${alarme.posCaixa}` : alarme.posCaixa;
+                    retorno.alarmes.push(`DH${hora}:${min} L${posCaixa} S${alarme.sonoro}`);
+                }
+            }
         }
 
         response.status(200).json({
@@ -205,5 +336,9 @@ module.exports = {
             msg: retorno
         });  
 
+    },
+
+    excluirCaixa: async function(request, response){
+        response = await deletCaixa(request, response);
     }
 };

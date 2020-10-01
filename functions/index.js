@@ -70,5 +70,7 @@ app.get("/Caixa/todos", userCaixa.todasCaixas);
 
 app.post("/Caixa/getAlarmes", userCaixa.getAlarmes);
 
+app.post("/Caixa/excluiCaixa", userCaixa.excluirCaixa);
+
 exports.api = functions.https.onRequest(app); 
 
