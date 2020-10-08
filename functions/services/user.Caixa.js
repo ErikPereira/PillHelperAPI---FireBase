@@ -17,11 +17,11 @@ async function deletCaixa(request, response){
                 }; 
             })
             .catch(function(err){
-                response.status(404).json({
+                return {
+                    status: 404, 
                     response: false,
                     msg: "caixa "+ idCaixa +" Não encontrada"
-                });
-                return response;
+                };
             })
 
         await dbUsuario.get()
@@ -33,11 +33,11 @@ async function deletCaixa(request, response){
             }
         })
         .catch(function(err){
-            response.status(404).json({
+            return {
+                status: 404, 
                 response: false,
-                msg: "Usuario "+ idUsuario +" Não encontrada: "
-            });
-            return response;
+                msg: "Usuario "+ idUsuario +" Não encontrada"
+            };
         })
         
         
@@ -53,11 +53,11 @@ async function deletCaixa(request, response){
         }
 
         if(!encontrouCaixa){
-            response.status(404).json({
+            return {
+                status: 404, 
                 response: false,
-                msg: "Caixa " + idCaixa + " não esta cadastrado no usuario de ID " + idUsuario,
-            });
-            return response;
+                msg: "Caixa " + idCaixa + " não esta cadastrado no usuario de ID " + idUsuario
+            };
         }
         usuarioCadastrado ={
             alarmes: usuarioCadastrado.alarmes,
@@ -69,27 +69,32 @@ async function deletCaixa(request, response){
 
         await dbCaixa.update(caixaCadastrada)
         .catch(function(err){
-            response.status(404).json({
+            return {
+                status: 404, 
                 response: false,
-                msg: "erro ao salvar informacoes da Caixa!" + err,
-            });
-            return response;
+                msg: "erro ao salvar informacoes da Caixa!" + err
+            };
         }) 
 
         await dbUsuario.update(usuarioCadastrado)
         .catch(function(err){
-            response.status(404).json({
+            return {
+                status: 404, 
                 response: false,
-                msg: "erro ao salvar informacoes do Usuario!" + err,
-            });
-            return response;
+                msg: "erro ao salvar informacoes do Usuario!" + err
+            };
         })
+
         response.status(200).json({
             response: true,
             msg: "Caixa removida com sucesso!",
         });
 
-        return response;
+        return {
+            status: 200, 
+            response: true,
+            msg: "Caixa removida com sucesso!",
+        };
 }
 
 module.exports = {
@@ -339,6 +344,12 @@ module.exports = {
     },
 
     excluirCaixa: async function(request, response){
-        response = await deletCaixa(request, response);
+       
+        const result = await deletCaixa(request, response);
+
+        response.status(result.status).json({
+            response: result.response,
+            msg: result.msg
+        });
     }
 };
