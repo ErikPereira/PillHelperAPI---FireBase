@@ -85,11 +85,6 @@ async function deletCaixa(request, response){
             };
         })
 
-        response.status(200).json({
-            response: true,
-            msg: "Caixa removida com sucesso!",
-        });
-
         return {
             status: 200, 
             response: true,
@@ -310,9 +305,19 @@ module.exports = {
             if(alarme.alarm_type === "1"){ // fixo
                 for(var j = 0; j < 7; j++){
                     if(alarme[diasSemana[j]] === "1"){
-                        const hora = parseInt(alarme.hora)  < 10 ? `0${alarme.hora}`   : alarme.hora;
-                        const min = parseInt(alarme.minuto) < 10 ? `0${alarme.minuto}` : alarme.minuto;
-                        const posCaixa = parseInt(alarme.posCaixa) < 10 ? `0${alarme.posCaixa}` : alarme.posCaixa;
+                        let hora = parseInt(alarme.hora)  < 10 ? `0${alarme.hora}`   : alarme.hora % 24;
+                        let min = parseInt(alarme.minuto) < 10 ? `0${alarme.minuto}` : alarme.minuto;
+                        let posCaixa = parseInt(alarme.posCaixa) < 10 ? `0${alarme.posCaixa}` : alarme.posCaixa;
+                        
+                        if(min >= 60){
+                            hora = (hora + 1) % 24;
+                            min %= 60;
+                        }
+
+                        if(alarme.luminoso === "0") {
+                            posCaixa = `00`;
+                        }
+
                         retorno.alarmes.push(`WH${j} ${hora}:${min} L${posCaixa} S${alarme.sonoro}`);
                     }
                 }
@@ -322,15 +327,22 @@ module.exports = {
                 let hora, min;
 
                 for(var j = 0; j < vezes_dia; j++){
-                    hora = ( parseInt(alarme.hora) + (j *parseInt(alarme.periodo_hora)) ) % 24; 
+                    hora = ( parseInt(alarme.hora) + (j * parseInt(alarme.periodo_hora)) ) % 24; 
                     min = parseInt(alarme.minuto) + (j * parseInt(alarme.periodo_min));
+                    
                     if(min >= 60){
                         hora = (hora + 1) % 24;
                         min %= 60;
                     }
+
                     hora = hora < 10 ? `0${hora}` : hora;
                     min = min < 10 ? `0${min}` : min;
-                    const posCaixa = parseInt(alarme.posCaixa) < 10 ? `0${alarme.posCaixa}` : alarme.posCaixa;
+                    let posCaixa = parseInt(alarme.posCaixa) < 10 ? `0${alarme.posCaixa}` : alarme.posCaixa;
+                    
+                    if(alarme.luminoso === "0") {
+                        posCaixa = `00`;
+                    }
+
                     retorno.alarmes.push(`DH${hora}:${min} L${posCaixa} S${alarme.sonoro}`);
                 }
             }
