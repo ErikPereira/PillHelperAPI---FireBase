@@ -88,7 +88,6 @@ module.exports = {
             })
         })
     },
-
     todosUsuarios: function(request, response){
         db.get()
         .then(function(docs){

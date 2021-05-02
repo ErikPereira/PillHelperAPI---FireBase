@@ -9,12 +9,13 @@
     "logs": "firebase functions:log"
   },
   "engines": {
-    "node": "8"
+    "node": "14"
   },
   "dependencies": {
     "express": "^4.17.1",
     "firebase-admin": "^8.10.0",
-    "firebase-functions": "^3.6.1"
+    "firebase-functions": "^3.13.2",
+    "http-status-codes": "^2.1.4"
   },
   "devDependencies": {
     "firebase-functions-test": "^0.2.0"

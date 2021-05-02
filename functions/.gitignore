@@ -1,1 +1,6 @@
-node_modules/
+/node_modules
+__tests__/coverage
+/package-lock.json
+setup_hooks.py
+.scannerwork
+__tests__/testDocuments
