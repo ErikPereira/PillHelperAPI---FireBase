@@ -11,3 +11,6 @@ Após este passo, realize seu login no Firebase utilizando `firebase login`
 
 entre na pasta *functions* e execute o comando
 `firebase deploy`
+
+# Executar código
+entre na pasta **functions** e execute o comando `firebase deploy`

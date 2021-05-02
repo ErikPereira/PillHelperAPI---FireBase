@@ -77,5 +77,53 @@ module.exports = {
                 });
             })  
         })
+    },
+    excluirAlarme: function(request, response){
+        const velhoAlarme =  request.body.velhoAlarme;
+        const id = request.body.id;
+        const dbAlarme = admin.firestore().collection("Usuario").doc(id);
+        let data = {};
+        
+        dbAlarme.get()
+        .then(function(doc){
+            let excluiu = false;
+            let excluiAlarme = [];
+            data = {
+                alarmes: doc.data().alarmes,
+                caixas: doc.data().caixas,
+                login: doc.data().login
+            }
+            data.alarmes.forEach((alarme) => {
+                if(!(alarme.nome_remedio === velhoAlarme.nome_remedio && alarme.hora === velhoAlarme.hora && alarme.minuto === velhoAlarme.minuto)){
+                   excluiAlarme.push(alarme);
+                }
+                else{
+                    excluiu = true;
+                }
+            });
+            if(!excluiu){
+                response.status(404).json({
+                    response: false,
+                    msg: "Alarme não encontrado!",
+                });
+                return;
+            }
+
+            data.alarmes = excluiAlarme;
+
+            dbAlarme.update(data)
+            .then(function(){
+                response.status(200).json({
+                    response: true,
+                    msg: "Alarme excluido com sucesso!",
+                });
+            })
+            .catch(function(err){
+                response.status(304).json({
+                    response: false,
+                    msg: "Alarme não excluido!" + err,
+                });
+            })  
+        })
     }
 };
